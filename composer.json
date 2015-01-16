@@ -1,0 +1,19 @@
+{
+    "name": "cyneek/yii2-widget-urlparser",
+    "description": "Form input widget that let users creating validated uris.",
+    "keywords": ["yii2", "form", "widget"],
+    "type": "yii2-extension",
+    "license": "BSD",
+    "authors": [
+        {
+            "name": "Joseba Juániz",
+            "email": "joseba.juaniz@gmail.com"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "*"
+    },
+    "autoload": {
+        "psr-4": { "cyneek\\yii2\\widget\\urlparser\\": "" }
+    }
+}
