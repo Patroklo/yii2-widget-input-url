@@ -47,7 +47,7 @@ class UrlParser extends ActiveForm
 	 * @return string
 	 * @throws \yii\base\InvalidConfigException
 	 */
-	static function manualValidation($config = [])
+	static function addManualValidation($config = [])
 	{
 
 		if (!array_key_exists('model', $config) || !array_key_exists('attribute', $config))
