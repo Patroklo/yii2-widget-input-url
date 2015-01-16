@@ -32,6 +32,12 @@ class UrlParser extends ActiveForm
 	/* @var ActiveForm */
 	var $form = NULL;
 
+	/** @var string */
+	var $field_id = '';
+
+	/** @var string  */
+	var $reference_id = '';
+
 	/**
 	 * only call this method after a form closing and
 	 *    when user hasn't used in the widget call the parameter $form
@@ -66,14 +72,10 @@ class UrlParser extends ActiveForm
 		parent::init();
 	}
 
-	/**
-	 * Renders the field.
-	 */
-	public function run()
+
+
+	protected function inputFieldReference()
 	{
-
-		$reference_id = Html::getInputId($this->source['model'], $this->source['attribute']);
-
 		/** @var ActiveForm $form */
 		if (is_null($this->form))
 		{
@@ -82,7 +84,6 @@ class UrlParser extends ActiveForm
 		{
 			$form = $this->form;
 		}
-
 
 		$r  = $form->field($this->model, $this->attribute)->begin();
 		$r .= Html::activeLabel($this->model, $this->attribute); // label
@@ -96,17 +97,62 @@ class UrlParser extends ActiveForm
 		$r .= $form->field($this->model, $this->attribute)->end();
 
 		$view = $this->getView();
-		$field_id = Html::getInputId($this->model, $this->attribute);
+		$view->registerJs('jQuery("#' . $this->field_id . '").urlParser("init", $("#' . $this->reference_id . '"), "' . $this->url_separator . '");');
 
-		$view->registerJs('jQuery("#' . $field_id . '").urlParser("' . $reference_id . '", "' . $this->url_separator . '");');
+		return $r;
+	}
+
+
+	protected function inputFieldNoReference()
+	{
+		/** @var ActiveForm $form */
+		if (is_null($this->form))
+		{
+			$form = $this;
+		} else
+		{
+			$form = $this->form;
+		}
+
+		$r  = $form->field($this->model, $this->attribute)->begin();
+		$r .= Html::activeLabel($this->model, $this->attribute); // label
+		$r .= Html::beginTag('div', ['class' => 'form-group']);
+		$r .= Html::activeTextInput($this->model, $this->attribute, ['class' => 'form-control']); // field
+		$r .= Html::endTag('div');
+		$r .= Html::error($this->model, $this->attribute, ['class' => 'help-block']); // error
+		$r .= $form->field($this->model, $this->attribute)->end();
+
+		$view = $this->getView();
+		$view->registerJs('jQuery("#' . $this->field_id . '").urlParser("init", "' . $this->url_separator . '");');
+
+		return $r;
+	}
+
+	/**
+	 * Renders the field.
+	 */
+	public function run()
+	{
+
+		$this->field_id = Html::getInputId($this->model, $this->attribute);
+
+		if (is_null($this->source))
+		{
+			$r = $this->inputFieldNoReference();
+		}
+		else
+		{
+			$this->reference_id = Html::getInputId($this->source['model'], $this->source['attribute']);
+			$r = $this->inputFieldReference();
+		}
 
 		// if developer hasn't passed a form object, then we will store the attributes to make a call
 		// to manualValidation() method after the form closing
 		if (is_null($this->form))
 		{
 			$attributes = Json::encode($this->attributes);
-
-			$view->registerJs('$("#' . $field_id . '").urlParser("addValidation", ' . $attributes . ');');
+			$view = $this->getView();
+			$view->registerJs('$("#' . $this->field_id . '").urlParser("addValidation", ' . $attributes . ');');
 		}
 
 		return $r;
