@@ -17,7 +17,7 @@
 				}
 			}
 			else {
-				return parserMethods[source_id].apply(this, Array.prototype.slice.call(arguments, 1));
+				return parserMethods[method].apply(this, Array.prototype.slice.call(arguments, 1));
 			}
 		}
 		else {

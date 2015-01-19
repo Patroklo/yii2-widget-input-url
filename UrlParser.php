@@ -5,6 +5,7 @@ namespace cyneek\yii2\widget\urlparser;
 
 use Yii;
 use yii\base\InvalidParamException;
+use yii\base\Widget;
 use yii\helpers\Html;
 use yii\helpers\Json;
 use yii\widgets\ActiveForm;
@@ -15,7 +16,7 @@ use yii\widgets\ActiveForm;
  * @author Joseba Juaniz <joseba.juaniz@gmail.com>
  * @since 1.0
  */
-class UrlParser extends ActiveForm
+class UrlParser extends Widget
 {
 
 	var $source;
@@ -35,8 +36,11 @@ class UrlParser extends ActiveForm
 	/** @var string */
 	var $field_id = '';
 
-	/** @var string  */
+	/** @var string */
 	var $reference_id = '';
+
+	/** @var boolean */
+	var $enableClientValidation;
 
 	/**
 	 * only call this method after a form closing and
@@ -50,8 +54,7 @@ class UrlParser extends ActiveForm
 	static function addManualValidation($config = [])
 	{
 
-		if (!array_key_exists('model', $config) || !array_key_exists('attribute', $config))
-		{
+		if (!array_key_exists('model', $config) || !array_key_exists('attribute', $config)) {
 			throw new InvalidParamException('Config array must have a model and attribute.');
 		}
 
@@ -73,19 +76,10 @@ class UrlParser extends ActiveForm
 	}
 
 
-
 	protected function inputFieldReference()
 	{
-		/** @var ActiveForm $form */
-		if (is_null($this->form))
-		{
-			$form = $this;
-		} else
-		{
-			$form = $this->form;
-		}
 
-		$r  = $form->field($this->model, $this->attribute)->begin();
+		$r = $this->form->field($this->model, $this->attribute)->begin();
 		$r .= Html::activeLabel($this->model, $this->attribute); // label
 		$r .= Html::beginTag('div', ['class' => 'input-group form-group']);
 		$r .= Html::activeTextInput($this->model, $this->attribute, ['readonly' => TRUE, 'class' => 'form-control']); // field
@@ -94,7 +88,7 @@ class UrlParser extends ActiveForm
 		$r .= Html::endTag('div');
 		$r .= Html::endTag('div');
 		$r .= Html::error($this->model, $this->attribute, ['class' => 'help-block']); // error
-		$r .= $form->field($this->model, $this->attribute)->end();
+		$r .= $this->form->field($this->model, $this->attribute)->end();
 
 		$view = $this->getView();
 		$view->registerJs('jQuery("#' . $this->field_id . '").urlParser("init", $("#' . $this->reference_id . '"), "' . $this->url_separator . '");');
@@ -105,22 +99,14 @@ class UrlParser extends ActiveForm
 
 	protected function inputFieldNoReference()
 	{
-		/** @var ActiveForm $form */
-		if (is_null($this->form))
-		{
-			$form = $this;
-		} else
-		{
-			$form = $this->form;
-		}
 
-		$r  = $form->field($this->model, $this->attribute)->begin();
+		$r = $this->form->field($this->model, $this->attribute)->begin();
 		$r .= Html::activeLabel($this->model, $this->attribute); // label
 		$r .= Html::beginTag('div', ['class' => 'form-group']);
 		$r .= Html::activeTextInput($this->model, $this->attribute, ['class' => 'form-control']); // field
 		$r .= Html::endTag('div');
 		$r .= Html::error($this->model, $this->attribute, ['class' => 'help-block']); // error
-		$r .= $form->field($this->model, $this->attribute)->end();
+		$r .= $this->form->field($this->model, $this->attribute)->end();
 
 		$view = $this->getView();
 		$view->registerJs('jQuery("#' . $this->field_id . '").urlParser("init", "' . $this->url_separator . '");');
@@ -133,24 +119,30 @@ class UrlParser extends ActiveForm
 	 */
 	public function run()
 	{
+		$enableJsAttributeCall = FALSE;
+
+		/** @var ActiveForm $form */
+		if (is_null($this->form)) {
+			$this->form = new ActiveForm();
+			if (is_null($this->enableClientValidation) or $this->enableClientValidation == TRUE)
+			{
+				$enableJsAttributeCall = TRUE;
+			}
+		}
 
 		$this->field_id = Html::getInputId($this->model, $this->attribute);
 
-		if (is_null($this->source))
-		{
+		if (is_null($this->source)) {
 			$r = $this->inputFieldNoReference();
-		}
-		else
-		{
+		} else {
 			$this->reference_id = Html::getInputId($this->source['model'], $this->source['attribute']);
 			$r = $this->inputFieldReference();
 		}
 
 		// if developer hasn't passed a form object, then we will store the attributes to make a call
 		// to manualValidation() method after the form closing
-		if (is_null($this->form))
-		{
-			$attributes = Json::encode($this->attributes);
+		if ($enableJsAttributeCall == TRUE) {
+			$attributes = Json::encode($this->form->attributes);
 			$view = $this->getView();
 			$view->registerJs('$("#' . $this->field_id . '").urlParser("addValidation", ' . $attributes . ');');
 		}
