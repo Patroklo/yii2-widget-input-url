@@ -1,10 +1,28 @@
 (function ($) {
 
-	$.fn.urlParser = function (source_id, separator) {
-		if (parserMethods[source_id]) {
-			return parserMethods[source_id].apply(this, Array.prototype.slice.call(arguments, 1));
-		} else {
-			parserMethods.init(this, source_id, separator);
+	$.fn.urlParser = function (method, source_id, separator) {
+
+		if (parserMethods[method]) {
+
+			if (method == 'init') {
+
+				if (separator == undefined)
+				{
+					// if there is only one parameter, then the field is standalone, and won't receive the string data from another source
+					return parserMethods.initStandAlone(this, source_id);
+				}
+				else
+				{
+					return parserMethods.init(this, source_id, separator);
+				}
+			}
+			else {
+				return parserMethods[method].apply(this, Array.prototype.slice.call(arguments, 1));
+			}
+		}
+		else {
+			$.error('Method ' + source_id + ' does not exist on jQuery.urlParser');
+			return false;
 		}
 
 	};
@@ -239,7 +257,7 @@
 		separator: null,
 		init: function (parser, source_id, separator) {
 			this.parser = parser;
-			this.source = $('#' + source_id);
+			this.source = source_id;
 			this.separator = separator;
 			this.button = $(this.parser).parents('div').find('button#uri_button');
 
@@ -252,6 +270,15 @@
 
 			this.checkButton(false);
 		},
+		initStandAlone: function (parser, separator) {
+
+			this.parser = parser;
+			this.separator = separator;
+			var object = this;
+
+			this.deactivateParser();
+
+		},
 		checkButton: function (clickEvent) {
 			if ($(this.button).hasClass('btn-primary') == false) {
 
@@ -262,6 +289,10 @@
 				this.activateParser();
 			}
 			else {
+
+				$(this.source).off('keyup');
+				$(this.parser).prop('readonly', false);
+
 				this.deactivateParser();
 			}
 		},
@@ -280,10 +311,6 @@
 		},
 		deactivateParser: function () {
 
-			$(this.source).off('keyup');
-
-			$(this.parser).prop('readonly', false);
-
 			var object = this;
 
 			$(this.parser).on('keyup', function () {
@@ -301,7 +328,7 @@
 			var attributes = $(this).data('attributes');
 			if (attributes != undefined) {
 				for (var index = 0; index < attributes.length; ++index) {
-					$('form').each(function(){
+					$('form').each(function () {
 						$(this).yiiActiveForm('add', attributes[index]);
 					});
 				}
