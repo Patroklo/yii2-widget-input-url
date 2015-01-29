@@ -57,7 +57,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		
 * Profit!
 
-
 ## Widget method options
 
 * model (ActiveRecord or Model) (obligatory)
