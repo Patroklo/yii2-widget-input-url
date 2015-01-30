@@ -53,7 +53,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * Install [Yii 2](http://www.yiiframework.com/download)
 * Install package via [composer](http://getcomposer.org/download/) 
 		
-		`"cyneek/yii2-widget-urlparser": "dev-master"`
+		"cyneek/yii2-widget-urlparser": "dev-master"
 		
 * Profit!
 
