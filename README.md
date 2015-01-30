@@ -7,7 +7,7 @@ This module adds a new input field that can be used algonside another input text
 
 Developed by Joseba Juániz ([@Patroklo](http://twitter.com/Patroklo))
 
-[Spanish Readme version](https://github.com/Patroklo/yii2-widget-input-url/blob/master/README_spanish.md)
+[Spanish Readme version](https://github.com/Patroklo/yii2-widget-input-url/blob/master/README_Spanish.md)
 
 ## Minimum requirements
 
