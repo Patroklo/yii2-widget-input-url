@@ -270,15 +270,6 @@
 
 			this.checkButton(false);
 		},
-		initStandAlone: function (parser, separator) {
-
-			this.parser = parser;
-			this.separator = separator;
-			var object = this;
-
-			this.deactivateParser();
-
-		},
 		checkButton: function (clickEvent) {
 			if ($(this.button).hasClass('btn-primary') == false) {
 
@@ -317,22 +308,6 @@
 				$(this).val(FormatForUrl(this.value, object.separator));
 			});
 
-		},
-		addValidation: function (attributes) {
-			// adds client validation data to the url field
-			// this will be used calling the launchValidation method.
-			$(this).data('attributes', attributes);
-
-		},
-		launchValidation: function () {
-			var attributes = $(this).data('attributes');
-			if (attributes != undefined) {
-				for (var index = 0; index < attributes.length; ++index) {
-					$('form').each(function () {
-						$(this).yiiActiveForm('add', attributes[index]);
-					});
-				}
-			}
 		}
 	};
 

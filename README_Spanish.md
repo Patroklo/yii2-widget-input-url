@@ -58,7 +58,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 		
 * Profit!
 
-## Opciones del método Widget
+
+## Casos de uso del Widget
+
+En todas las opciones, por defecto, el campo de tipo texto que almacena el string de tipo URI filtra automáticamente los datos que se le introducen usando javascript para formar una cadena de caracteres válida. Esto no está relacionado con la validación de UriValidator, sino que es un filtro adicional añadido para añadir un nivel mayor de robustez al funcionamiento del widget.
+
+El widget puede ser usado de varias formas, dependiendo de los datos que se incluyan en su definición:
+
+### Standalone
+
+		
+		echo \cyneek\yii2\widget\urlparser\UrlParser::widget(['model' => $model, 'attribute' => 'fieldName', 'source' => ['model' => $model, 'attribute' => 'sourceFieldName']]);
+		
+
+No tendrá validación en navegador, tampoco heredará ningún cambio en los formularios o campos input hechos por el desarrollador.
+
+#### Opciones
 
 * model (ActiveRecord o Model) (obligatorio)
 > Define el modelo de datos que se usará para crear el campo del formulario.
@@ -66,14 +81,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 * attribute (string) (obligatorio)
 > Define el atributo del modelo de datos que se usará para crear el campo del formulario.
-
-
-* form (ActiveForm) (opcional)
-> Es el objeto Form que define el formulario en el que está incluído el widget. Se usará para heredar las configuraciones del formulario a la hora de crear el campo.
-
-
-* enableClientValidation (boolean) (opcional)
-> Usado cuando no se pasa el objeto formulario. Define si está activado o no en el widget la validación en navegador mediante javascript.
 
 
 * url_separator (char) (opcional)
@@ -87,95 +94,32 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 > Define si el widget tendrá una fuente de datos para el string de tipo uri externo.
 > Los valores que contiene deben ser siempre un modelo y un atributo de ese modelo de un campo de tipo texto distinto al definido en el widget que contenga ese formulario.
 
+Si se define el campo source, el widget creará un campo de tipo input text que estará declarado como readonly, eso es porque se usará el campo input definido en source como fuente de la cadena de caracteres URI. No obstante, el widget también incluirá un botón que permitirá al usuario desactivar la opción readonly del campo y también el enlace entre los dos campos, permitiendole introducir manualmente la cadena de caracteres en el campo input del widget.
 
-## Opciones del método estático addManualValidation
-
-El método addManualValidation tan solo debe ser llamado en caso de que no hayamos asignado en el método Widget la opción *form* y queramos activar al campo validación en cliente. Esta validación en el navegador será para todas las reglas que se le hayan asignado al campo en el modelo, no solo la validación de UriValidator.  
-
-* model (string) (obligatorio)
-> Define el modelo de datos que se usará para crear el campo del formulario.
-
-
-* attribute (string) (obligatorio)
-> Define el atributo del modelo de datos que se usará para crear el campo del formulario.
-
-
-## Casos de uso del Widget
-
-Dado que esta librería es un campo widget separado del sistema de formularios en sí mismo existe el problema de que no se puede crear por defecto el campo de forma normal incluyendo todas las opciones del formulario en el que se encuentra al igual que los campos input normales de Yii2, esto afecta a validaciones desde cliente, modificaciones css o en php que se hayan realizado, etc.. Para solucionar esto se ha añadido una opción adicional en el widget que se encarga de recoger el formulario en el que se encuentra incluído el widget y lo usa para crear los campos internos de tipo input text que tiene y así adecuarlo al resto del diseño.
-
-En todas las opciones, por defecto, el campo de tipo texto que almacena el string de tipo URI filtra automáticamente los datos que se le introducen usando javascript para formar una cadena de caracteres válida. Esto no está relacionado con la validación de UriValidator, sino que es un filtro adicional añadido para añadir un nivel mayor de robustez al funcionamiento del widget.
-
-El widget puede ser usado de varias formas, dependiendo de los datos que se incluyan en su definición:
-
-### 1. Sin campo fuente ni usando referencia del formulario
-
-Esto generará un campo de tipo texto en el que el usuario tendrá que rellenar manualmente la cadena de caracteres de tipo URI que quiere enviar al sistema. 
-
-El caso de uso más sencillo de este widget es el de definir el campo de URI en solitario sin incluir una referencia al formulario. Si tan solo incluimos esta línea de código no tendríamos validación automática en el navegador y existe la probabilidad de que los cambios adicionales que se hayan realizado por parte del desarrollador en algún campo no aparezcan en este widget:
+### Junto con un widget ActiveForm
 
 		
-		echo \cyneek\yii2\widget\urlparser\UrlParser::widget(['model' => $model, 'attribute' => 'fieldName']);
+		echo $form->field($model, 'fieldName')->widget('\cyneek\yii2\widget\urlparser\UrlParser', ['source' => ['model' => $model, 'attribute' => 'sourceFieldName']]);
 		
 
-Si lo que queremos es añadir a este caso **validación en el navegador** para este widget habrá que incluir una línea más **DESPUES** de cerrar el formulario en el que está incluído el widget:
+Tendrá validación en cliente si está activado así en el formulario.
 
-		
-		echo \cyneek\yii2\widget\urlparser\UrlParser::addManualValidation(['model' => $model, 'attribute' => 'fieldName']);
-		
 
-Esta llamada a un método estático incluirá un código JavaScript que añadirá validación en el navegador para este campo de tipo text en el widget.
+#### Opciones
 
-**Atención:** Tan sólo debe incluirse esta línea si el resto del formulario también tiene la validación en el navegador activada.
+* url_separator (char) (opcional)
+> Es el caracter que se utiliza para sustituir el espacio en la construcción de un string de tipo URI, por defecto es *"-"* 
+>**Atención:** Si se modifica, el nuevo valor debe ser a su vez un caracter URI válido.
 
-Adicionalmente hay una configuración opcional que puede añadirse a la definición del widget que desactivaría la validación en navegador para este caso, aunque no está recomendado su uso, para ello habría que utilizar esta definición en lugar de la incluida anteriormente:
 
-		
-		echo \cyneek\yii2\widget\urlparser\UrlParser::widget(['model' => $model, 'attribute' => 'fieldName', 'enableClientValidation' => TRUE|FALSE]);
-		
+* source (array) (opcional)
+    * model (ActiveRecord o Model) (obligatorio)
+    * attribute (string) (obligatorio)
+> Define si el widget tendrá una fuente de datos para el string de tipo uri externo.
+> Los valores que contiene deben ser siempre un modelo y un atributo de ese modelo de un campo de tipo texto distinto al definido en el widget que contenga ese formulario.
 
-Dependiendo del valor que tenga enableClientValidation en este caso, el campo del widget tendrá activada o no la validación en cliente.
 
-### 2. Sin campo fuente pero usando referencia del formulario
-
-Este caso generará un campo de tipo texto que el usuario tendrá que rellenar manualmente con una cadena de caracteres de tipo URI que quiera enviar al sistema pero automáticamente tendrá por defecto incluídas las mismas opciones que el resto de campos que se utilice en el formulario. Este caso es más directo que el anterior, ya que no es necesario incluir ninguna llamada a ningún método adicional del widget para que funcione apropiadamente.
-
-		
-		echo \cyneek\yii2\widget\urlparser\UrlParser::widget(['form' => $form, 'model' => $model, 'attribute' => 'fieldName']);
-		
-
-En este caso, si el formulario tiene declarada validación en cliente, el campo que añada el widget también la tendrá por defecto, si la tiene desactivada, el campo widget también la tendrá. No sería necesario incluir nada más.
-
-### 3. Con campo fuente pero sin referencia del formulario
-
-Este caso generará un campo de tipo texto que estará bloqueado a la escritura por defecto, ya que usará como origen del string de tipo URI un input externo del formulario que nosotros declararemos en la creación del widget. No obstante también se incluye un botón en el widget que permitirá al usuario desactivar este enlace e introducir manualmente los caracteres en el widget de forma independiente a la fuente de datos que le hayamos definido.
-
-		
-		echo \cyneek\yii2\widget\urlparser\UrlParser::widget(['model' => $model, 'attribute' => 'fieldName', 'source' => ['model' => $model, 'attribute' => 'sourceFieldName']]);
-		
-
-Al igual que el caso número 1, el widget, al no tener incluído el formulario en su definición, no podrá incluir validaciones en el input que introduce. Para ello también habrá que incluir una llamada adicional **DESPUES** de cerrar el formulario en el que está incluído el widget:
-
-		
-		echo \cyneek\yii2\widget\urlparser\UrlParser::addManualValidation(['model' => $model, 'attribute' => 'fieldName']);
-		
-
-Esta llamada a un método estático incluirá un código JavaScript que añadirá validación en el navegador para este campo de tipo text en el widget.
-
-**Atención:** Tan sólo debe incluirse esta línea si el resto del formulario también tiene la validación en el navegador activada.
-
-También es posible añadir la opción enableClientValidation que se ha explicado en el punto 1 de esta sección para activar / desactivar manualmente la validación en cliente de este widget.
-
-### 4. Con campo fuente y con referencia al formulario
-
-Este caso es el más completo de todos. Incluye el uso de un campo externo al widget como origen del string de tipo URI que se introducirá automáticamente en este, la opción de desactivar este enlace manualmente por parte del usuario, y se le aplicarán las configuraciones del formulario en el que está incluído el widget de forma automática. Para crearlo tan solo habría que incluir el código:
-
-		
-		echo \cyneek\yii2\widget\urlparser\UrlParser::widget(['form' => $form, 'model' => $model, 'attribute' => 'fieldName', 'source' => ['model' => $model, 'attribute' => 'sourceFieldName']]);
-		
-
-En este caso, si el formulario tiene declarada validación en cliente, el campo que añada el widget también la tendrá por defecto, si la tiene desactivada, el campo widget también la tendrá. No sería necesario incluir nada más.
-
+Si se define el campo source, el widget creará un campo de tipo input text que estará declarado como readonly, eso es porque se usará el campo input definido en source como fuente de la cadena de caracteres URI. No obstante, el widget también incluirá un botón que permitirá al usuario desactivar la opción readonly del campo y también el enlace entre los dos campos, permitiendole introducir manualmente la cadena de caracteres en el campo input del widget.
 
 ## Uso de UriValidation
 
