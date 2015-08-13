@@ -4,6 +4,7 @@
     "keywords": ["yii2", "form", "widget"],
     "type": "yii2-extension",
     "license": "BSD",
+    "version": "1.0.0",
     "authors": [
         {
             "name": "Joseba Juániz",
