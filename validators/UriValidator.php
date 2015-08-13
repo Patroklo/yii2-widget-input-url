@@ -11,86 +11,81 @@ use yii\web\JsExpression;
 
 class UriValidator extends Validator
 {
-	/**
-	 * @var string the regular expression used to validate the attribute value.
-	 */
-	public $pattern = '/[^-_\w+]/';
+    /**
+     * @var string the regular expression used to validate the attribute value.
+     */
+    public $pattern = '/[^-_\w+]/';
 
 
-	/**
-	 * @inheritdoc
-	 */
-	public function init()
-	{
-		parent::init();
+    /**
+     * @inheritdoc
+     */
+    public function init()
+    {
+        parent::init();
 
-		if ($this->message === null)
-		{
-			$this->message = Yii::t('yii', '{attribute} is not a valid URI.');
-		}
-	}
+        if ($this->message === NULL) {
+            $this->message = Yii::t('yii', '{attribute} is not a valid URI.');
+        }
+    }
 
-	/**
-	 * @inheritdoc
-	 */
-	public function validateAttribute($model, $attribute)
-	{
-		$value = $model->$attribute;
-		$result = $this->validateValue($value);
-		if (!empty($result))
-		{
-			$this->addError($model, $attribute, $result[0], $result[1]);
-		}
-	}
+    /**
+     * @inheritdoc
+     */
+    public function validateAttribute($model, $attribute)
+    {
+        $value = $model->$attribute;
+        $result = $this->validateValue($value);
+        if (!empty($result)) {
+            $this->addError($model, $attribute, $result[0], $result[1]);
+        }
+    }
 
-	/**
-	 * @inheritdoc
-	 */
-	protected function validateValue($value)
-	{
-		// make sure the length is limited to avoid DOS attacks
-		if (!is_string($value) || strlen($value) > 2000)
-		{
-			return [$this->message, []];
-		}
+    /**
+     * @inheritdoc
+     */
+    protected function validateValue($value)
+    {
+        // make sure the length is limited to avoid DOS attacks
+        if (!is_string($value) || strlen($value) > 2000) {
+            return [$this->message, []];
+        }
 
-		$pattern = $this->pattern;
+        $pattern = $this->pattern;
 
-		if (preg_match($pattern, $value))
-		{
-			return [$this->message, []];
-		}
+        if (preg_match($pattern, $value)) {
+            return [$this->message, []];
+        }
 
-		return null;
-	}
+        return NULL;
+    }
 
-	/**
-	 * @inheritdoc
-	 */
-	public function clientValidateAttribute($model, $attribute, $view)
-	{
+    /**
+     * @inheritdoc
+     */
+    public function clientValidateAttribute($model, $attribute, $view)
+    {
 
-		$pattern = $this->pattern;
+        $pattern = $this->pattern;
 
-		$options = [
-			'pattern' => new JsExpression($pattern),
-			'message' => Yii::$app->getI18n()->format($this->message, [
-				'attribute' => $model->getAttributeLabel($attribute),
-			], Yii::$app->language)
-		];
-		if ($this->skipOnEmpty)
-		{
-			$options['skipOnEmpty'] = 1;
-		}
+        $options = [
+            'pattern' => new JsExpression($pattern),
+            'message' => Yii::$app->getI18n()->format($this->message, [
+                'attribute' => $model->getAttributeLabel($attribute),
+            ], Yii::$app->language)
+        ];
+        if ($this->skipOnEmpty) {
+            $options['skipOnEmpty'] = 1;
+        }
 
-		ValidationAsset::register($view);
+        ValidationAsset::register($view);
 
 
-		$jsonOptions = Json::encode($options);
+        $jsonOptions = Json::encode($options);
 
-		// launches the uri method for calling client side validation and
-		// the call itself with the data.
-		return <<<JS
+        // launches the uri method for calling client side validation and
+        // the call itself with the data.
+        return <<<JS
 		
 		if (yii.validation.uri == undefined)
 		{
@@ -108,5 +103,5 @@ class UriValidator extends Validator
 	yii.validation.uri(value, messages,  $jsonOptions  );
 JS;
 
-	}
+    }
 }

@@ -66,7 +66,15 @@ This widget can be used in many ways, depending of it's definition options:
 ### Standalone
 
 		
-		echo \cyneek\yii2\widget\urlparser\UrlParser::widget(['model' => $model, 'attribute' => 'fieldName', 'source' => ['model' => $model, 'attribute' => 'sourceFieldName']]);
+		echo \cyneek\yii2\widget\urlparser\UrlParser::widget([
+																'model' => $model, 
+																'attribute' => 'fieldName', 
+																'source' => 
+																	[
+																		'model' => $model, 
+																		'attribute' => 'sourceFieldName'
+																	]
+																]);
 		
 
 Won't have client validation, also won't inherit any form or input changes made by the developer.
@@ -84,6 +92,14 @@ Won't have client validation, also won't inherit any form or input changes made 
 * url_separator (char) (optional)
 > It's the character used to replace the space character while making a URI string. By default it's defined as *"-"*
 > **Warning** If it's defined, the new value must also be a URI valid character.
+
+
+* regex_definition (char) (optional)
+> Regex that will be used to validate the inserted data in the URI field. In case it's not valid, it won't be added in it.
+
+
+* maxlength (integer) (optional)
+> Max number of characters that the field will allow.
 
 
 * source (array) (optional)

@@ -7,7 +7,7 @@ use Yii;
 use yii\base\InvalidParamException;
 use yii\base\Widget;
 use yii\helpers\Html;
-use yii\widgets\ActiveForm;
+use yii\widgets\MaskedInput;
 
 /**
  * UrlParser Widget
@@ -17,95 +17,125 @@ use yii\widgets\ActiveForm;
  */
 class UrlParser extends Widget
 {
-	/** @var array */
-	var $source;
+    /** @var array */
+    var $source;
 
-	/** @var \yii\db\ActiveRecord */
-	var $model;
+    /** @var \yii\db\ActiveRecord */
+    var $model;
 
-	/** @var  string */
-	var $attribute;
+    /** @var  string */
+    var $attribute;
 
-	/** @var string */
-	var $url_separator = '-';
+    /** @var string */
+    var $url_separator = '-';
 
-	/* @var ActiveForm */
-	//var $form = NULL;
+    /** @var string */
+    protected $field_id = '';
 
-	/** @var string */
-	protected $field_id = '';
+    /**
+     * Regex definition used in the URI MaskedInput field
+     *
+     * @var string
+     */
+    protected $regex_definition = '[0-9A-Za-zñÑ_\-]';
 
-	/** @var string */
-	protected $reference_id = '';
+    /**
+     * Max lenght for the MaskedInput, will be defined in the cardinality of the javascript asset
+     *
+     * @var int
+     */
+    var $maxlength = 50;
 
-	/** @var boolean */
-	var $enableClientValidation;
+    /**
+     * Initializes the field.
+     */
+    public function init()
+    {
 
+        if (is_null($this->model) || is_null($this->attribute)) {
+            throw new InvalidParamException('Widget must have a defined model and attribute.');
+        }
 
-	/**
-	 * Initializes the field.
-	 */
-	public function init()
-	{
+        $view = $this->getView();
 
-		if (is_null($this->model) || is_null($this->attribute))
-		{
-			throw new InvalidParamException('Widget must have a defined model and attribute.');
-		}
+        UrlParserAsset::register($view);
 
-		$view = $this->getView();
-
-		UrlParserAsset::register($view);
-
-		parent::init();
-	}
-
-
-	protected function inputFieldReference()
-	{
-		$r = '';
-		$r .= Html::beginTag('div', ['class' => 'input-group form-group']);
-		$r .= Html::activeTextInput($this->model, $this->attribute, ['readonly' => TRUE, 'class' => 'form-control']); // field
-		$r .= Html::beginTag('div', ['class' => 'input-group-btn']);
-		$r .= Html::button('', ['id' => 'uri_button', 'class' => 'glyphicon glyphicon-pencil btn']); // button
-		$r .= Html::endTag('div');
-		$r .= Html::endTag('div');
-
-		$view = $this->getView();
-		$view->registerJs('jQuery("#' . $this->field_id . '").urlParser("init", $("#' . $this->reference_id . '"), "' . $this->url_separator . '");');
-
-		return $r;
-	}
+        parent::init();
+    }
 
 
-	protected function inputFieldNoReference()
-	{
-		$r = '';
-		$r .= Html::beginTag('div', ['class' => 'form-group']);
-		$r .= Html::activeTextInput($this->model, $this->attribute, ['class' => 'form-control']); // field
-		$r .= Html::endTag('div');
+    /**
+     * Method called in case we have a source field from which we will get data for the UrlParser
+     * 
+     * @return string
+     * @throws \Exception
+     */
+    protected function inputFieldReference()
+    {
+        $view = $this->getView();
+        $button_id = 'uri_button_' . $this->field_id;
+        $reference_id = Html::getInputId($this->source['model'], $this->source['attribute']);
+        $maskedAlias = 'uri_' . $this->field_id;
 
-		$view = $this->getView();
-		$view->registerJs('jQuery("#' . $this->field_id . '").urlParser("init", "' . $this->url_separator . '");');
+        $r = '';
+        $r .= Html::beginTag('div', ['class' => 'input-group form-group']);
 
-		return $r;
-	}
+        // Register the specific alias for the MaskedInput, each URLParser will have a different alias
+        // because that way we will be able to define multiple regex definitions, url_separators and maxLengths
+        // one for each UrlInput.
+        $view->registerJs('defineUriMask("' . $maskedAlias . '", ' . $this->maxlength . ', "' . $this->url_separator . '", "' . $this->regex_definition . '");');
+
+        $r .= MaskedInput::widget(['model' => $this->model, 'attribute' => $this->attribute,
+            'options' => ['readonly' => TRUE, 'class' => 'form-control'], 'clientOptions' => ['alias' => $maskedAlias]]);
+        $r .= Html::beginTag('div', ['class' => 'input-group-btn']);
+        $r .= Html::button('', ['id' => $button_id, 'class' => 'glyphicon glyphicon-pencil btn']); // button
+        $r .= Html::endTag('div');
+        $r .= Html::endTag('div');
+
+        // Register the button and reference field
+        $view->registerJs('jQuery("#' . $button_id . '").uriParserButton($("#' . $this->field_id . '"), $("#' . $reference_id . '"));');
+
+        return $r;
+    }
+
+    /**
+     * Method called if we don't define a source field.
+     * 
+     * @return string
+     * @throws \Exception
+     */
+    protected function inputFieldNoReference()
+    {
+        $view = $this->getView();
+
+        $maskedAlias = 'uri_' . $this->field_id;
+        // Register the specific alias for the MaskedInput, each URLParser will have a different alias
+        // because that way we will be able to define multiple regex definitions, url_separators and maxLengths
+        // one for each UrlInput.
+        $view->registerJs('defineUriMask("' . $maskedAlias . '", ' . $this->maxlength . ', "' . $this->url_separator . '", "' . $this->regex_definition . '");');
+
+        $r = '';
+        $r .= Html::beginTag('div', ['class' => 'form-group']);
+        $r .= MaskedInput::widget(['model' => $this->model, 'attribute' => $this->attribute, 'clientOptions' => ['alias' => 'uri']]);
+        $r .= Html::endTag('div');
+
+        return $r;
+    }
 
 
-	/**
-	 * Renders the field.
-	 */
-	public function run()
-	{
-		$this->field_id = Html::getInputId($this->model, $this->attribute);
+    /**
+     * Renders the field.
+     */
+    public function run()
+    {
+        $this->field_id = Html::getInputId($this->model, $this->attribute);
 
-		if (is_null($this->source)) {
-			$r = $this->inputFieldNoReference();
-		} else {
-			$this->reference_id = Html::getInputId($this->source['model'], $this->source['attribute']);
-			$r = $this->inputFieldReference();
-		}
+        if (is_null($this->source)) {
+            $r = $this->inputFieldNoReference();
+        } else {
+            $r = $this->inputFieldReference();
+        }
 
-		return $r;
-	}
+        return $r;
+    }
 }

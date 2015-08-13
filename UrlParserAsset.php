@@ -13,16 +13,16 @@ use yii\web\AssetBundle;
 class UrlParserAsset extends AssetBundle
 {
 
-	public $depends = [
-		'yii\web\JqueryAsset'
-	];
+    public $depends = [
+        'yii\web\JqueryAsset'
+    ];
 
-	public function init()
-	{
-		$this->sourcePath = __DIR__ . '/assets';
+    public function init()
+    {
+        $this->sourcePath = __DIR__ . '/assets';
 
-		$this->js[] = (YII_DEBUG ? 'js/urlparser.js' : 'js/urlparser.min.js');
+        $this->js[] = (YII_DEBUG ? 'js/urlparser.js' : 'js/urlparser.min.js');
 
-		parent::init();
-	}
+        parent::init();
+    }
 }
